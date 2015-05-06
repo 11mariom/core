@@ -46,10 +46,19 @@ class App {
 	 * @param string $topNamespace the namespace which should be prepended to
 	 * the transformed app id, defaults to OCA\
 	 * @return string the starting namespace for the app
+	 * @throws \RunTimeException when app path can not be determined
+	 * @throws \RunTimeException when info.xml can not be found
 	 */
 	public static function buildAppNamespace($appId, $topNamespace='OCA\\') {
+		$appPath = OC_App::getAppPath($appId);
+		if ($appPath === false) {
+			throw new \RunTimeException("Could not get path for app id $appId");
+		}
 		// first try to parse the app's appinfo/info.xml <namespace> tag
-		$filePath = OC_App::getAppPath($appId) . '/appinfo/info.xml';
+		$filePath = "$appPath/appinfo/info.xml";
+		if (!is_file($filePath)) {
+			throw new \RunTimeException("File $filePath does not exist");
+		}
 		$loadEntities = libxml_disable_entity_loader(false);
 		$xml = @simplexml_load_file($filePath);
 		libxml_disable_entity_loader($loadEntities);
